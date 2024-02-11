@@ -46,28 +46,6 @@ def handle_message(update):
             # Remove the bot's username from the message text before processing
             message_text = message_text[:-7]  # Assuming '@tajiri' is 7 characters long
 
-            existing_chat = collection.find_one({"chat_id": chat_id})
-            current_month = time.strftime("%m")  # get the current month
-            if existing_chat and existing_chat.get("month") == current_month and existing_chat.get("requests") >= 60:
-                requests.post(send_message_url, json={
-                    "chat_id": chat_id,
-                    "text": "You have reached your monthly limit of 30 requests"
-                })
-                return True
-            if existing_chat:
-                # If it's a new month, reset the request count
-                if existing_chat.get("month") != current_month:
-                    collection.update_one({"chat_id": chat_id}, {"$set": {"month": current_month, "requests": 1}})
-                else:
-                    collection.update_one({"chat_id": chat_id}, {"$inc": {"requests": 1}})
-            else:
-                # Add the user to the database for the first time
-                collection.insert_one({
-                    "chat_id": chat_id,
-                    "month": current_month,
-                    "requests": 1
-                })
-
             model = "mistralai/Mixtral-8x7B-Instruct-v0.1"
             try:
                 chat_completion = client.chat.completions.create(
